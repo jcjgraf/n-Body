@@ -1,13 +1,14 @@
 clear 
 
-N = 2;
+N = 5;
 
-m = 10^13*rand(1,N);
-% p = rand(3,N);
-% v = rand(3,N);
+m = 10^12*rand(1,N);
+p = rand(3,N);
+v = rand(3,N);
 
-p = [0,1; 0,0; 0,0];
-v = zeros(3, N);
+% m = 10^13*[1, 1, 2];
+% p = [0,0.5,2; 0,0,2; 0,0,0];
+% v = [10,0,-5; 5,0, 3; 0,0,-25];
 
 fc = zeros(N,N,3);
 f = zeros(3,N);
@@ -20,25 +21,23 @@ totalTime = 1000;
 totalFrames = totalTime / timeStep;
 counter = 0;
 
+plotLims = 2;
+
 axis tight manual
 ax = gca;
 ax.NextPlot = 'replaceChildren';
 
 F(totalFrames/100) = struct('cdata', [], 'colormap', []);
-plotLims = 2 ;
+
+grid on
+hold off
 
 
 % Update Data
 for t = 1:totalFrames
-    % All Forces between each point
-    for i = 1:N
-       for j = 1:N
-           if j ~= i
-               fc(i, j, :) = getForce(m(i), m(j), p(:,i),p(:,j));
 
-           end
-       end
-    end
+    % All Forces between each point
+    fc = getForce(N, m, p);
 
     % Resulting Force of each point
     for i = 1:N
@@ -54,24 +53,18 @@ for t = 1:totalFrames
     % Update velocity and the position
     v = getNewVelocity(v, aCache, a, timeStep);
     p = getNewPosition(p, a, v, timeStep);
-   
-    disp('---')
-    disp(p)
-    p = detectCollision(p, m, N);
     
-    disp('reasign')
+    [p, N, m, fc, f, v, a] = detectCollision(p, N, m, fc, f, v, a);
     disp(p)
-    disp('---')
     
     % Draw 
     if mod(t,10) == 0
         counter = counter + 1;
-        hold on
-        scatter3(p(1,:), p(2,:),p(3,:), setDisplaySize(m), 'filled')
+% TODO: setDisplaySize -> NaN setDisplaySize(m)
+        scatter3(p(1,:), p(2,:),p(3,:), 200, 'filled')
         xlim([-plotLims plotLims]);
         ylim([-plotLims plotLims]);
         zlim([-plotLims plotLims]);
-        grid on
         drawnow
         F(counter) = getframe;
     end
